@@ -93,25 +93,6 @@ See [docs/examples.md](docs/examples.md) for sample outputs across common scenar
 
 ---
 
-## Architecture
-
-```
-capsule/
-├── main.go                  # CLI entry point and text renderer
-├── internal/
-│   ├── runtime/             # Container runtime detection
-│   ├── security/            # Capabilities, namespaces, seccomp, AppArmor
-│   ├── kubernetes/          # Service account, security context, host access
-│   ├── filesystem/          # Mount analysis, SUID, writable dirs, Docker socket
-│   ├── network/             # Interface enumeration, DNS analysis
-│   ├── process/             # PID 1 and current process inspection
-│   ├── syscall/             # Dangerous syscall testing
-│   ├── reporter/            # JSON report structure
-│   └── colors/              # ANSI color helpers
-```
-
----
-
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
