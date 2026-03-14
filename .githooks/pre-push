@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Skip checks when pushing tags — CI handles validation there
+while read -r local_ref _local_sha _remote_ref _remote_sha; do
+    if [[ "$local_ref" == refs/tags/* ]]; then
+        exit 0
+    fi
+done
+
 echo "--- pre-push checks ---"
 
 if ! command -v golangci-lint &>/dev/null; then
