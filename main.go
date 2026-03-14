@@ -75,7 +75,7 @@ func main() {
 	}
 
 	printHeader("CONTAINER SECURITY ASSESSMENT")
-	fmt.Printf("Container Inspector v%s\n\n", version)
+	fmt.Printf("capsule v%s\n\n", version)
 	printRuntime(rt)
 	printCapabilities(caps)
 	printNamespaces(namespaces, userNS)

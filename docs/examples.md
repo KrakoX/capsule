@@ -12,7 +12,7 @@ docker run --rm -v $(pwd)/capsule:/capsule:ro <image> /capsule
 
 ```
 === CONTAINER SECURITY ASSESSMENT ===
-Container Inspector v1.0.0
+capsule v1.0.0
 
 === CONTAINER RUNTIME ===
 Runtime:          containerd
