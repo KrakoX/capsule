@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "--- pre-push checks ---"
+
+if ! command -v golangci-lint &>/dev/null; then
+    echo "ERROR: golangci-lint not found. Install it:"
+    echo "  curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b \$(go env GOPATH)/bin v2.11.3"
+    exit 1
+fi
+
+echo "1/4 golangci-lint config verify..."
+golangci-lint config verify
+
+echo "2/4 golangci-lint run..."
+golangci-lint run ./...
+
+echo "3/4 go build..."
+go build ./...
+
+echo "4/4 go test..."
+go test ./...
+
+echo "--- all checks passed ---"
