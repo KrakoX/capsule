@@ -141,10 +141,27 @@ func printCapabilities(caps security.CapabilitySet) {
 		fmt.Printf("  Effective:   %s\n", colors.Good("none (restricted)"))
 	} else {
 		fmt.Printf("  Effective:   %s\n", formatCapList(caps.Effective))
-		if caps.HasDangerousCapability() {
+		hasSevere, hasNotable := false, false
+		for _, cap := range caps.Effective {
+			if security.IsSevereCap(cap) {
+				hasSevere = true
+			}
+			if security.IsNotableCap(cap) {
+				hasNotable = true
+			}
+		}
+		if hasSevere {
 			fmt.Printf("  %s Dangerous capabilities present:\n", colors.High("[HIGH]"))
 			for _, cap := range caps.Effective {
-				if isDangerousCap(cap) {
+				if security.IsSevereCap(cap) {
+					fmt.Printf("    - %s\n", colors.Warning(cap))
+				}
+			}
+		}
+		if hasNotable {
+			fmt.Printf("  %s Notable capabilities present:\n", colors.Warning("[MEDIUM]"))
+			for _, cap := range caps.Effective {
+				if security.IsNotableCap(cap) {
 					fmt.Printf("    - %s\n", colors.Warning(cap))
 				}
 			}
@@ -473,14 +490,4 @@ func getIsolationColor(isolation string) func(string) string {
 	default:
 		return colors.Info
 	}
-}
-
-func isDangerousCap(cap string) bool {
-	dangerous := []string{"SYS_ADMIN", "SYS_PTRACE", "SYS_MODULE", "DAC_OVERRIDE", "DAC_READ_SEARCH"}
-	for _, d := range dangerous {
-		if strings.Contains(cap, d) {
-			return true
-		}
-	}
-	return false
 }

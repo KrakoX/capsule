@@ -62,13 +62,24 @@ var capabilityNames = map[int]string{
 	40: "CAP_CHECKPOINT_RESTORE",
 }
 
-// Dangerous capabilities that enable container escape
-var dangerousCaps = map[string]bool{
-	"CAP_SYS_ADMIN":       true,
-	"CAP_SYS_PTRACE":      true,
-	"CAP_SYS_MODULE":      true,
-	"CAP_DAC_OVERRIDE":    true,
-	"CAP_DAC_READ_SEARCH": true,
+// severeCaps are non-default capabilities with documented container escape vectors
+var severeCaps = map[string]bool{
+	"CAP_SYS_ADMIN":  true, // CVE-2022-0492, CVE-2022-0185
+	"CAP_SYS_PTRACE": true, // process injection, CVE-2019-5736 chain
+	"CAP_SYS_MODULE": true, // kernel module load = arbitrary kernel code execution
+	"CAP_SYS_RAWIO":  true, // /dev/mem physical memory R/W
+	"CAP_BPF":        true, // CVE-2021-3490, CVE-2022-23222 (eBPF verifier bypass)
+	"CAP_SYS_BOOT":   true, // kexec_load: replace running kernel
+}
+
+// notableCaps are non-default capabilities that are indirect attack enablers.
+// Docker-default caps (DAC_OVERRIDE, DAC_READ_SEARCH, NET_RAW) are excluded
+// to avoid noise on every default container.
+var notableCaps = map[string]bool{
+	"CAP_NET_ADMIN":          true, // iptables bypass, cluster lateral movement
+	"CAP_SYSLOG":             true, // KASLR bypass via dmesg (kernel address leak)
+	"CAP_PERFMON":            true, // LLC side-channel attacks, crypto key extraction
+	"CAP_CHECKPOINT_RESTORE": true, // CRIU process injection
 }
 
 // GetCapabilities reads and parses capability information from /proc/self/status
@@ -148,24 +159,29 @@ func assessRisk(effectiveCaps []string) string {
 	if len(effectiveCaps) == 0 {
 		return "LOW"
 	}
-
-	dangerousCount := 0
+	severeCount, notableCount := 0, 0
 	for _, cap := range effectiveCaps {
-		if dangerousCaps[cap] {
-			dangerousCount++
+		switch {
+		case severeCaps[cap]:
+			severeCount++
+		case notableCaps[cap]:
+			notableCount++
 		}
 	}
-
-	if dangerousCount >= 2 {
+	switch {
+	case severeCount >= 2:
 		return "CRITICAL"
-	} else if dangerousCount == 1 {
+	case severeCount == 1:
 		return "HIGH"
-	} else if len(effectiveCaps) > 5 {
+	case notableCount > 0 || len(effectiveCaps) > 5:
 		return "MEDIUM"
+	default:
+		return "LOW"
 	}
-
-	return "LOW"
 }
+
+func IsSevereCap(cap string) bool  { return severeCaps[cap] }
+func IsNotableCap(cap string) bool { return notableCaps[cap] }
 
 // readFile reads a file and returns its contents as a string
 func readFile(path string) string {
@@ -176,10 +192,10 @@ func readFile(path string) string {
 	return string(data)
 }
 
-// HasDangerousCapability checks if any dangerous capabilities are present
+// HasDangerousCapability checks if any severe or notable capabilities are present
 func (cs CapabilitySet) HasDangerousCapability() bool {
 	for _, cap := range cs.Effective {
-		if dangerousCaps[cap] {
+		if severeCaps[cap] || notableCaps[cap] {
 			return true
 		}
 	}

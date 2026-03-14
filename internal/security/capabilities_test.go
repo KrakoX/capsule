@@ -99,6 +99,21 @@ func TestAssessRisk(t *testing.T) {
 			caps: []string{"CAP_SYS_ADMIN", "CAP_SYS_PTRACE", "CAP_SYS_MODULE"},
 			want: "CRITICAL",
 		},
+		{
+			name: "CAP_DAC_OVERRIDE alone is LOW (Docker default, excluded from notable)",
+			caps: []string{"CAP_DAC_OVERRIDE"},
+			want: "LOW",
+		},
+		{
+			name: "default Docker 14-cap set is MEDIUM",
+			caps: []string{
+				"CAP_CHOWN", "CAP_DAC_OVERRIDE", "CAP_FOWNER", "CAP_FSETID",
+				"CAP_KILL", "CAP_SETGID", "CAP_SETUID", "CAP_SETPCAP",
+				"CAP_NET_BIND_SERVICE", "CAP_NET_RAW", "CAP_SYS_CHROOT",
+				"CAP_MKNOD", "CAP_AUDIT_WRITE", "CAP_SETFCAP",
+			},
+			want: "MEDIUM",
+		},
 	}
 
 	for _, tt := range tests {
@@ -137,8 +152,8 @@ func TestHasDangerousCapability(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "DAC_READ_SEARCH is dangerous",
-			caps: CapabilitySet{Effective: []string{"CAP_DAC_READ_SEARCH"}},
+			name: "NET_ADMIN is notable (dangerous)",
+			caps: CapabilitySet{Effective: []string{"CAP_NET_ADMIN"}},
 			want: true,
 		},
 	}
