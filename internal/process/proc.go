@@ -76,7 +76,7 @@ func getParentPID(pid int) int {
 
 	// PPID is the 4th field
 	var ppid int
-	fmt.Sscanf(fields[3], "%d", &ppid)
+	_, _ = fmt.Sscanf(fields[3], "%d", &ppid)
 	return ppid
 }
 

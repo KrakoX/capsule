@@ -8,28 +8,28 @@ import (
 
 // SUIDBinary represents a SUID binary with security implications
 type SUIDBinary struct {
-	Path       string
-	Name       string
-	Dangerous  bool   // Known dangerous SUID binary
-	Reason     string // Why it's dangerous
+	Path      string
+	Name      string
+	Dangerous bool   // Known dangerous SUID binary
+	Reason    string // Why it's dangerous
 }
 
 var dangerousSUIDBinaries = map[string]string{
-	"sudo":   "privilege escalation",
-	"su":     "privilege escalation",
-	"passwd": "password modification",
-	"mount":  "filesystem manipulation",
-	"umount": "filesystem manipulation",
-	"docker": "container escape",
+	"sudo":    "privilege escalation",
+	"su":      "privilege escalation",
+	"passwd":  "password modification",
+	"mount":   "filesystem manipulation",
+	"umount":  "filesystem manipulation",
+	"docker":  "container escape",
 	"kubectl": "cluster control",
-	"find":   "file system traversal + command execution",
-	"vim":    "command execution via :!",
-	"nano":   "command execution",
-	"python": "command execution",
-	"perl":   "command execution",
-	"ruby":   "command execution",
-	"bash":   "command execution",
-	"sh":     "command execution",
+	"find":    "file system traversal + command execution",
+	"vim":     "command execution via :!",
+	"nano":    "command execution",
+	"python":  "command execution",
+	"perl":    "command execution",
+	"ruby":    "command execution",
+	"bash":    "command execution",
+	"sh":      "command execution",
 }
 
 // FindSUIDBinaries searches common paths for SUID binaries.

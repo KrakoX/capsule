@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"github.com/KrakoX/capsule/internal/colors"
 	"github.com/KrakoX/capsule/internal/filesystem"
 	"github.com/KrakoX/capsule/internal/kubernetes"
@@ -10,8 +12,6 @@ import (
 	"github.com/KrakoX/capsule/internal/runtime"
 	"github.com/KrakoX/capsule/internal/security"
 	syscalltest "github.com/KrakoX/capsule/internal/syscall"
-	"flag"
-	"fmt"
 	"os"
 	"strings"
 )
@@ -184,11 +184,12 @@ func main() {
 		fmt.Printf("  Seccomp:  %s\n", colors.Good(string(seccomp)))
 	}
 
-	if apparmor == "unconfined" {
+	switch apparmor {
+	case "unconfined":
 		fmt.Printf("  AppArmor: %s (no MAC enforcement)\n", colors.Warning(apparmor))
-	} else if apparmor == "unknown" || apparmor == "none" {
+	case "unknown", "none":
 		fmt.Printf("  AppArmor: %s\n", colors.GrayText(apparmor))
-	} else {
+	default:
 		fmt.Printf("  AppArmor: %s\n", colors.Good(apparmor))
 	}
 	fmt.Println()

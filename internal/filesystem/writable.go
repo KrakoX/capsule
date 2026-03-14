@@ -77,8 +77,8 @@ func isWritable(dir string) bool {
 	}
 
 	// Clean up
-	file.Close()
-	os.Remove(testFile)
+	_ = file.Close()
+	_ = os.Remove(testFile)
 
 	return true
 }

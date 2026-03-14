@@ -6,7 +6,6 @@ run:
 linters:
   enable:
     - errcheck
-    - gosimple
     - govet
     - ineffassign
     - staticcheck
@@ -14,14 +13,12 @@ linters:
   settings:
     errcheck:
       check-type-assertions: true
-
-formatters:
-  enable:
-    - gofmt
-
-issues:
   exclusions:
     rules:
       - path: _test\.go
         linters:
           - errcheck
+
+formatters:
+  enable:
+    - gofmt

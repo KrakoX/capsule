@@ -97,11 +97,3 @@ func readFileStringHost(path string) string {
 	}
 	return string(data)
 }
-
-func readlinkHost(path string) string {
-	target, err := os.Readlink(path)
-	if err != nil {
-		return ""
-	}
-	return target
-}

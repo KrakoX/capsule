@@ -131,15 +131,6 @@ func countVisiblePIDs() int {
 	return count
 }
 
-// readlink reads a symlink target; returns "" on error.
-func readlink(path string) string {
-	target, err := os.Readlink(path)
-	if err != nil {
-		return ""
-	}
-	return target
-}
-
 // IsFullyIsolated returns true if all namespaces are isolated.
 func (ni NamespaceInfo) IsFullyIsolated() bool {
 	return ni.PID && ni.Net && ni.Mount && ni.UTS && ni.IPC && ni.User

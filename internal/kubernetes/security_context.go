@@ -40,7 +40,7 @@ func isRootFilesystemReadOnly() bool {
 	}
 
 	// File created - root is writable
-	file.Close()
-	os.Remove(testFile)
+	_ = file.Close()
+	_ = os.Remove(testFile)
 	return false
 }

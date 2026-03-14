@@ -7,17 +7,17 @@ import (
 
 // NetworkInfo represents network configuration and interfaces
 type NetworkInfo struct {
-	Interfaces   []string
-	DNS          DNSConfig
-	HostNetwork  bool
+	Interfaces     []string
+	DNS            DNSConfig
+	HostNetwork    bool
 	IsolationLevel string
 }
 
 // DNSConfig represents DNS configuration
 type DNSConfig struct {
-	Nameservers []string
+	Nameservers   []string
 	SearchDomains []string
-	DNSType     string // "cluster", "host", "custom"
+	DNSType       string // "cluster", "host", "custom"
 }
 
 // GetNetworkInfo analyzes network configuration
@@ -50,8 +50,8 @@ func getInterfaces() []string {
 
 	for _, line := range strings.Split(netDev, "\n") {
 		if strings.Contains(line, ":") &&
-		   !strings.Contains(line, "Inter-") &&
-		   !strings.Contains(line, "face") {
+			!strings.Contains(line, "Inter-") &&
+			!strings.Contains(line, "face") {
 
 			iface := strings.TrimSpace(strings.Split(line, ":")[0])
 			if iface != "lo" { // Skip loopback

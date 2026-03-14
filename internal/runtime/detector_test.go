@@ -8,11 +8,11 @@ func TestDetectFromMountInfo(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name         string
-		mountInfo    string
-		wantName     string
-		wantVariant  string
-		wantVia      string
+		name        string
+		mountInfo   string
+		wantName    string
+		wantVariant string
+		wantVia     string
 	}{
 		{
 			name: "standard containerd (EKS)",
@@ -31,36 +31,36 @@ func TestDetectFromMountInfo(t *testing.T) {
 			wantVia:     "mountinfo",
 		},
 		{
-			name: "rke2 detection",
-			mountInfo: `/var/lib/rancher/rke2/agent/containerd/io.containerd.snapshotter.v1.overlayfs`,
+			name:        "rke2 detection",
+			mountInfo:   `/var/lib/rancher/rke2/agent/containerd/io.containerd.snapshotter.v1.overlayfs`,
 			wantName:    "containerd",
 			wantVariant: "rke2",
 			wantVia:     "mountinfo",
 		},
 		{
-			name: "microk8s detection",
-			mountInfo: `/var/snap/microk8s/common/run/containerd.sock`,
+			name:        "microk8s detection",
+			mountInfo:   `/var/snap/microk8s/common/run/containerd.sock`,
 			wantName:    "containerd",
 			wantVariant: "microk8s",
 			wantVia:     "mountinfo",
 		},
 		{
-			name: "docker detection",
-			mountInfo: `/var/lib/docker/overlay2/abc123/merged`,
+			name:        "docker detection",
+			mountInfo:   `/var/lib/docker/overlay2/abc123/merged`,
 			wantName:    "docker",
 			wantVariant: "",
 			wantVia:     "mountinfo",
 		},
 		{
-			name: "cri-o detection",
-			mountInfo: `/var/lib/containers/storage/overlay/abc123/merged`,
+			name:        "cri-o detection",
+			mountInfo:   `/var/lib/containers/storage/overlay/abc123/merged`,
 			wantName:    "cri-o",
 			wantVariant: "",
 			wantVia:     "mountinfo",
 		},
 		{
-			name: "podman detection",
-			mountInfo: `/home/user/.local/share/containers/storage/overlay`,
+			name:        "podman detection",
+			mountInfo:   `/home/user/.local/share/containers/storage/overlay`,
 			wantName:    "podman",
 			wantVariant: "",
 			wantVia:     "mountinfo",
@@ -96,9 +96,9 @@ func TestDetectFromCgroup(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		cgroup    string
-		wantName  string
+		name     string
+		cgroup   string
+		wantName string
 	}{
 		{
 			name:     "containerd cgroup",

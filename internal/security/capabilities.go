@@ -64,10 +64,10 @@ var capabilityNames = map[int]string{
 
 // Dangerous capabilities that enable container escape
 var dangerousCaps = map[string]bool{
-	"CAP_SYS_ADMIN":    true,
-	"CAP_SYS_PTRACE":   true,
-	"CAP_SYS_MODULE":   true,
-	"CAP_DAC_OVERRIDE": true,
+	"CAP_SYS_ADMIN":       true,
+	"CAP_SYS_PTRACE":      true,
+	"CAP_SYS_MODULE":      true,
+	"CAP_DAC_OVERRIDE":    true,
 	"CAP_DAC_READ_SEARCH": true,
 }
 

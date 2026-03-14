@@ -10,8 +10,8 @@ import (
 
 // DockerSocket represents a detected docker socket
 type DockerSocket struct {
-	Path   string
-	Valid  bool // Tested via HTTP request
+	Path       string
+	Valid      bool // Tested via HTTP request
 	Accessible bool // Can read the file
 }
 
@@ -42,7 +42,7 @@ func FindDockerSockets() []DockerSocket {
 	// Walk filesystem for other sockets (limit search to /var/run and /run)
 	searchPaths := []string{"/var/run", "/run"}
 	for _, searchPath := range searchPaths {
-		filepath.Walk(searchPath, func(path string, info os.FileInfo, err error) error {
+		_ = filepath.Walk(searchPath, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return nil
 			}
@@ -83,10 +83,10 @@ func testDockerSocket(path string) bool {
 	if err != nil {
 		return false
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Set a read deadline
-	conn.SetDeadline(time.Now().Add(1 * time.Second))
+	_ = conn.SetDeadline(time.Now().Add(1 * time.Second))
 
 	// Send a minimal HTTP request to /version endpoint
 	request := "GET /version HTTP/1.0\r\n\r\n"
