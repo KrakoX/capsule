@@ -1,9 +1,12 @@
 # Example outputs
 
-All outputs below were produced by running the binary directly inside a container:
+All outputs below were produced by running the binary directly inside a container.
+The binary is baked into a test image at build time — no volume mounts for delivery:
 
 ```bash
-docker run --rm -v $(pwd)/capsule:/capsule:ro <image> /capsule
+GOOS=linux GOARCH=arm64 go build -ldflags "-X main.version=1.0.0" -o capsule-linux-arm64 .
+docker build -t capsule-test:latest .
+docker run --rm capsule-test:latest
 ```
 
 ---
@@ -21,11 +24,9 @@ Detection Method: mountinfo
 === SECURITY PROFILE ===
 Capabilities:
   Effective:   CAP_CHOWN, CAP_DAC_OVERRIDE, CAP_FOWNER, ... (14 total)
-  [HIGH] Dangerous capabilities present:
-    - CAP_DAC_OVERRIDE
   Bounding:    14 capabilities
   NoNewPrivs:  false (can gain privileges via setuid)
-  Risk Level:  HIGH
+  Risk Level:  MEDIUM
 
 Namespaces:
   PID:    true   Net:   true   Mount: true
@@ -39,27 +40,41 @@ Security Profiles:
 Syscall Restrictions:
   [HIGH] 4 dangerous syscalls allowed:
     - chroot
-    - setuid
-    - setgid
     - ptrace
+    - setgid
+    - setuid
   Blocked: 6/10
 
 === FILESYSTEM ANALYSIS ===
-[OK] No dangerous mounts detected
+[HIGH] High Risk Mounts:
+  cgroup -> /sys/fs/cgroup (kernel interface access)
+  proc -> /proc/bus (kernel interface access)
+  proc -> /proc/fs (kernel interface access)
+  proc -> /proc/irq (kernel interface access)
+  proc -> /proc/sys (kernel interface access)
+  ... and 1 more
 
 SUID Binaries: 0 found
 
 [MEDIUM] Sensitive Writable Directories:
   /root (root home directory)
   /etc (system configuration)
+  /var/log (system logs)
+  /usr/local (system binaries)
+
+[MEDIUM] Development Tools (attack vectors):
+  shells: sh
+  network: wget, nc
 
 === NETWORK ANALYSIS ===
 Interfaces: 1 found (eth0)
 Isolation:  STRONG (single interface)
 DNS Type:   custom
+Nameserver: 192.168.5.1
 
 === PROCESS ANALYSIS ===
 PID 1:     /capsule
+Current:   PID 1: /capsule
 Security:  MEDIUM
 ```
 
@@ -69,16 +84,26 @@ Security:  MEDIUM
 
 All 41 capabilities, seccomp disabled, AppArmor unconfined, all dangerous syscalls available:
 
+```bash
+docker run --rm --privileged capsule-test:latest
+```
+
 ```
 === SECURITY PROFILE ===
 Capabilities:
   Effective:   CAP_CHOWN, CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, ... (41 total)
   [HIGH] Dangerous capabilities present:
-    - CAP_DAC_OVERRIDE
-    - CAP_DAC_READ_SEARCH
     - CAP_SYS_MODULE
+    - CAP_SYS_RAWIO
     - CAP_SYS_PTRACE
     - CAP_SYS_ADMIN
+    - CAP_SYS_BOOT
+    - CAP_BPF
+  [MEDIUM] Notable capabilities present:
+    - CAP_NET_ADMIN
+    - CAP_SYSLOG
+    - CAP_PERFMON
+    - CAP_CHECKPOINT_RESTORE
   Bounding:    41 capabilities
   NoNewPrivs:  false (can gain privileges via setuid)
   Risk Level:  CRITICAL
@@ -89,16 +114,16 @@ Security Profiles:
 
 Syscall Restrictions:
   [HIGH] 10 dangerous syscalls allowed:
+    - chroot
     - mount
-    - umount2
+    - pivot_root
     - ptrace
     - reboot
-    - setns
-    - unshare
-    - pivot_root
-    - chroot
-    - setuid
     - setgid
+    - setns
+    - setuid
+    - umount2
+    - unshare
 ```
 
 ---
@@ -106,8 +131,7 @@ Syscall Restrictions:
 ## Container escape vector — Docker socket mounted
 
 ```bash
-docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-  -v $(pwd)/capsule:/capsule:ro alpine /capsule
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock capsule-test:latest
 ```
 
 ```
@@ -128,15 +152,19 @@ Valid Docker Socket(s) found:
 
 `Net: false` indicates the network namespace is shared with the host:
 
+```bash
+docker run --rm --network=host capsule-test:latest
+```
+
 ```
 === SECURITY PROFILE ===
 Namespaces:
   PID:    true   Net:   false   Mount: true
-  UTS:    true   IPC:   true    User:  false
+  UTS:    true   IPC:   true   User:  false
   Isolation:  STRONG
 
 === NETWORK ANALYSIS ===
-Interfaces: 2 found (eth0, docker0)
+Interfaces: 3 found (eth0, docker0, br-c6202fa5246e)
 Isolation:  NONE (host network)
 ```
 
@@ -146,94 +174,51 @@ Isolation:  NONE (host network)
 
 `PID: false` indicates the PID namespace is shared. The process runs at a host-level PID and PID 1 is the host's init:
 
+```bash
+docker run --rm --pid=host capsule-test:latest
+```
+
 ```
 === SECURITY PROFILE ===
 Namespaces:
   PID:    false   Net:   true   Mount: true
-  UTS:    true    IPC:   true   User:  false
+  UTS:    true   IPC:   true   User:  false
   Isolation:  STRONG
 
 === PROCESS ANALYSIS ===
 PID 1:     /sbin/init
-Current:   PID 4950: /capsule
+Current:   PID 3969: /capsule
 ```
 
 ---
 
 ## Extra dangerous capability (`--cap-add=SYS_ADMIN`)
 
-Two dangerous capabilities present → CRITICAL risk, 8 syscalls unlocked:
+One severe capability present → HIGH risk, 8 syscalls unlocked:
+
+```bash
+docker run --rm --cap-add=SYS_ADMIN capsule-test:latest
+```
 
 ```
 === SECURITY PROFILE ===
 Capabilities:
   Effective:   CAP_CHOWN, CAP_DAC_OVERRIDE, CAP_FOWNER, ... (15 total)
   [HIGH] Dangerous capabilities present:
-    - CAP_DAC_OVERRIDE
     - CAP_SYS_ADMIN
-  Risk Level:  CRITICAL
+  Bounding:    15 capabilities
+  NoNewPrivs:  false (can gain privileges via setuid)
+  Risk Level:  HIGH
 
 Syscall Restrictions:
   [HIGH] 8 dangerous syscalls allowed:
-    - mount
-    - umount2
-    - ptrace
-    - setns
-    - unshare
     - chroot
-    - setuid
+    - mount
+    - ptrace
     - setgid
+    - setns
+    - setuid
+    - umount2
+    - unshare
   Blocked: 2/10
-```
-
----
-
-## Kubernetes pod (default)
-
-Service account, cluster DNS, and host access flags are automatically detected:
-
-```
-=== KUBERNETES CONTEXT ===
-Service Account:
-  Name:       default (using default SA)
-  Namespace:  production
-  Token:      true
-  CA Cert:    true
-
-Pod Security Context:
-  runAsUser:              0 (root)
-  runAsGroup:             0
-  runAsNonRoot:           false
-  readOnlyRootFilesystem: false
-
-Host Access:
-  hostNetwork: false
-  hostPID:     false
-  hostIPC:     false
-
-=== NETWORK ANALYSIS ===
-Interfaces: 1 found (eth0)
-Isolation:  STRONG (single interface)
-DNS Type:   kubernetes
-Nameserver: 10.96.0.10
-```
-
----
-
-## Hardened pod (drop ALL capabilities, non-root, read-only root)
-
-```
-=== SECURITY PROFILE ===
-Capabilities:
-  Effective:   none (restricted)
-  Bounding:    0 capabilities
-  NoNewPrivs:  true
-  Risk Level:  LOW
-
-=== KUBERNETES CONTEXT ===
-Pod Security Context:
-  runAsUser:              1000
-  runAsGroup:             1000
-  runAsNonRoot:           true
-  readOnlyRootFilesystem: true
 ```
