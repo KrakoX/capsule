@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: inspector-sa
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ci-custom-sa
+  labels:
+    scenario: custom-sa
+spec:
+  restartPolicy: Never
+  serviceAccountName: inspector-sa
+  containers:
+  - name: target
+    image: alpine:latest
+    command: ["sleep", "3600"]

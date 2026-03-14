@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ci-host-ipc
+  labels:
+    scenario: host-ipc
+spec:
+  restartPolicy: Never
+  hostIPC: true
+  containers:
+  - name: target
+    image: alpine:latest
+    command: ["sleep", "3600"]
