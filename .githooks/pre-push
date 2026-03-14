@@ -8,6 +8,8 @@ while read -r local_ref _local_sha _remote_ref _remote_sha; do
     fi
 done
 
+export PATH="$HOME/go/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
+
 echo "--- pre-push checks ---"
 
 if ! command -v golangci-lint &>/dev/null; then
