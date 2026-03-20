@@ -191,13 +191,3 @@ func readFile(path string) string {
 	}
 	return string(data)
 }
-
-// HasDangerousCapability checks if any severe or notable capabilities are present
-func (cs CapabilitySet) HasDangerousCapability() bool {
-	for _, cap := range cs.Effective {
-		if severeCaps[cap] || notableCaps[cap] {
-			return true
-		}
-	}
-	return false
-}

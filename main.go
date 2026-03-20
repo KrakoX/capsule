@@ -141,29 +141,24 @@ func printCapabilities(caps security.CapabilitySet) {
 		fmt.Printf("  Effective:   %s\n", colors.Good("none (restricted)"))
 	} else {
 		fmt.Printf("  Effective:   %s\n", formatCapList(caps.Effective))
-		hasSevere, hasNotable := false, false
+		var severe, notable []string
 		for _, cap := range caps.Effective {
 			if security.IsSevereCap(cap) {
-				hasSevere = true
-			}
-			if security.IsNotableCap(cap) {
-				hasNotable = true
+				severe = append(severe, cap)
+			} else if security.IsNotableCap(cap) {
+				notable = append(notable, cap)
 			}
 		}
-		if hasSevere {
+		if len(severe) > 0 {
 			fmt.Printf("  %s Dangerous capabilities present:\n", colors.High("[HIGH]"))
-			for _, cap := range caps.Effective {
-				if security.IsSevereCap(cap) {
-					fmt.Printf("    - %s\n", colors.Warning(cap))
-				}
+			for _, cap := range severe {
+				fmt.Printf("    - %s\n", colors.Warning(cap))
 			}
 		}
-		if hasNotable {
+		if len(notable) > 0 {
 			fmt.Printf("  %s Notable capabilities present:\n", colors.Warning("[MEDIUM]"))
-			for _, cap := range caps.Effective {
-				if security.IsNotableCap(cap) {
-					fmt.Printf("    - %s\n", colors.Warning(cap))
-				}
+			for _, cap := range notable {
+				fmt.Printf("    - %s\n", colors.Warning(cap))
 			}
 		}
 	}

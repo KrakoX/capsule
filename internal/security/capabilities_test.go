@@ -128,48 +128,6 @@ func TestAssessRisk(t *testing.T) {
 	}
 }
 
-func TestHasDangerousCapability(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name string
-		caps CapabilitySet
-		want bool
-	}{
-		{
-			name: "no caps",
-			caps: CapabilitySet{},
-			want: false,
-		},
-		{
-			name: "safe caps only",
-			caps: CapabilitySet{Effective: []string{"CAP_CHOWN", "CAP_KILL"}},
-			want: false,
-		},
-		{
-			name: "SYS_ADMIN is dangerous",
-			caps: CapabilitySet{Effective: []string{"CAP_CHOWN", "CAP_SYS_ADMIN"}},
-			want: true,
-		},
-		{
-			name: "NET_ADMIN is notable (dangerous)",
-			caps: CapabilitySet{Effective: []string{"CAP_NET_ADMIN"}},
-			want: true,
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			got := tt.caps.HasDangerousCapability()
-			if got != tt.want {
-				t.Errorf("HasDangerousCapability() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestParseNoNewPrivs(t *testing.T) {
 	t.Parallel()
 

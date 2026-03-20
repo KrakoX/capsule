@@ -137,18 +137,20 @@ func (ni NamespaceInfo) IsFullyIsolated() bool {
 }
 
 // IsolationLevel returns a string describing the overall isolation level.
+// Sharing the host network or PID namespace caps the result at MODERATE — both
+// have documented host-escape consequences regardless of other namespace counts.
 func (ni NamespaceInfo) IsolationLevel() string {
 	isolated := 0
-	total := 6
 	for _, v := range []bool{ni.PID, ni.Net, ni.Mount, ni.UTS, ni.IPC, ni.User} {
 		if v {
 			isolated++
 		}
 	}
+	highRiskShared := !ni.PID || !ni.Net
 	switch {
-	case isolated == total:
+	case isolated == 6:
 		return "FULL"
-	case isolated >= 4:
+	case isolated >= 4 && !highRiskShared:
 		return "STRONG"
 	case isolated >= 2:
 		return "MODERATE"
